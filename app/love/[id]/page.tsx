@@ -138,7 +138,6 @@ export default function LovePage() {
             💌 Share on WhatsApp
           </button>
 
-          {/* 🔐 Password Input */}
           <input
             type="password"
             placeholder="Enter Password"
@@ -167,7 +166,7 @@ export default function LovePage() {
 
   // 💖 UNLOCKED LOVE PAGE
   return (
-    <div className="relative min-h-screen flex items-center justify-center text-center px-6 overflow-hidden bg-gradient-to-br from-black via-rose-900 to-gray-900 text-pink-200 transition-all duration-700">
+    <div className="relative min-h-screen flex items-center justify-center text-center px-6 overflow-hidden bg-gradient-to-br from-black via-rose-900 to-gray-900 text-pink-200">
 
       {/* 🌹 Falling Petals */}
       {Array.from({ length: 20 }).map((_, i) => (
@@ -189,7 +188,7 @@ export default function LovePage() {
         <source src="/music.mp3" type="audio/mpeg" />
       </audio>
 
-      <div className="max-w-2xl z-10 animate-fadeIn">
+      <div className="max-w-2xl z-10">
 
         <button
           onClick={toggleMusic}
@@ -201,6 +200,20 @@ export default function LovePage() {
         <h1 className="text-5xl font-bold mb-6">
           {data.your_name} ❤️ {data.partner_name}
         </h1>
+
+        {/* 📸 Love Image */}
+        {data.image_url && (
+          <div className="mb-8 flex justify-center">
+            <div className="relative group">
+              <img
+                src={data.image_url}
+                alt="Love Memory"
+                className="w-72 md:w-96 rounded-3xl shadow-[0_0_40px_rgba(255,105,180,0.6)] border-4 border-pink-300 transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 rounded-3xl bg-pink-400 opacity-0 group-hover:opacity-10 transition duration-500"></div>
+            </div>
+          </div>
+        )}
 
         <p className="text-xl leading-relaxed whitespace-pre-line min-h-[120px]">
           {displayedText}

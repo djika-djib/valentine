@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "../../lib/supabase";
 
 export default function CreatePage() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function CreatePage() {
     password: "",
   });
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (
@@ -38,6 +39,30 @@ export default function CreatePage() {
 
     setLoading(true);
 
+    let imageUrl = null;
+
+    // 📸 Upload Image If Exists
+    if (imageFile) {
+      const fileName = `${Date.now()}-${imageFile.name}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("love-images")
+        .upload(fileName, imageFile);
+
+      if (uploadError) {
+        alert("Image upload failed 😢");
+        setLoading(false);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("love-images")
+        .getPublicUrl(fileName);
+
+      imageUrl = publicUrlData.publicUrl;
+    }
+
+    // 💾 Insert Into Database
     const { data, error } = await supabase
       .from("love_pages")
       .insert([
@@ -46,6 +71,7 @@ export default function CreatePage() {
           partner_name: formData.partnerName,
           story: formData.story,
           password: formData.password,
+          image_url: imageUrl,
         },
       ])
       .select()
@@ -54,57 +80,67 @@ export default function CreatePage() {
     setLoading(false);
 
     if (error) {
-      console.error(error);
       alert("Something went wrong 😢");
       return;
     }
 
-    // Redirect to dynamic love page using real database ID
     router.push(`/love/${data.id}`);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 to-rose-200 flex items-center justify-center px-4">
       <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-lg">
+
         <h1 className="text-3xl font-bold text-rose-700 text-center mb-6">
           💌 Create Your Love Page
         </h1>
 
-        {/* Your Name */}
         <input
           type="text"
           name="yourName"
           placeholder="Your Name"
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg mb-4 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-400"
+          className="w-full p-3 border rounded-lg mb-4 text-black"
         />
 
-        {/* Partner Name */}
         <input
           type="text"
           name="partnerName"
           placeholder="Partner's Name"
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg mb-4 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-400"
+          className="w-full p-3 border rounded-lg mb-4 text-black"
         />
 
-        {/* Love Story */}
         <textarea
           name="story"
           placeholder="Write your love message..."
           rows={4}
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg mb-4 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-400"
+          className="w-full p-3 border rounded-lg mb-4 text-black"
         />
 
-        {/* Password */}
         <input
           type="password"
           name="password"
           placeholder="Set a Password"
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg mb-6 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-400"
+          className="w-full p-3 border rounded-lg mb-4 text-black"
         />
+
+        {/* 📸 Image Upload */}
+        <div className="mb-6">
+          <label className="block text-sm text-black font-medium mb-2">
+            Add a Special Photo (optional)
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) =>
+              setImageFile(e.target.files ? e.target.files[0] : null)
+            }
+            className="w-full text-black"
+          />
+        </div>
 
         <button
           onClick={handleSubmit}
@@ -113,6 +149,7 @@ export default function CreatePage() {
         >
           {loading ? "Creating..." : "Generate Love Link 💘"}
         </button>
+
       </div>
     </div>
   );
