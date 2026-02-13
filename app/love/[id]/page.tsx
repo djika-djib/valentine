@@ -35,9 +35,9 @@ export default function LovePage() {
     fetchData();
   }, [id]);
 
-  // 🔹 Countdown
+  // 🔹 GMT Countdown (UTC+0)
   useEffect(() => {
-    const targetDate = new Date("2026-02-14T00:00:00");
+    const targetDate = new Date(Date.UTC(2026, 1, 14, 0, 0, 0));
 
     const updateCountdown = () => {
       const now = new Date();
@@ -60,6 +60,7 @@ export default function LovePage() {
 
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -108,11 +109,11 @@ export default function LovePage() {
             🔐 Private Love Page
           </h2>
 
-          {/* ⏳ Countdown */}
+          {/* ⏳ GMT Countdown */}
           {timeLeft && (
             <div className="mb-6 bg-black/50 px-6 py-4 rounded-2xl">
               <p className="text-sm mb-2 opacity-80">
-                💘 Valentine Begins In:
+                💘 Valentine Begins (GMT) In:
               </p>
               <div className="flex justify-center gap-4 text-lg font-bold">
                 <div>{timeLeft.days}d</div>
@@ -220,7 +221,7 @@ export default function LovePage() {
           <span className="animate-pulse">|</span>
         </p>
 
-        {/* ✨ Signature */}
+         {/* ✨ Signature */}
         <p className="mt-16 text-m opacity-60 tracking-wide">
           Made with 💘 by <span className="font-semibold text-pink-300">DjikaTech</span> © {new Date().getFullYear()}
         </p>
