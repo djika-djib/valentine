@@ -37,9 +37,9 @@ export default function Home() {
           >
             Start Creating → 
           </Link>
-          <button className="bg-white text-rose-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-rose-50 transition">
+          {/* <button className="bg-white text-rose-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-rose-50 transition">
             See Example
-          </button>
+          </button> */}
         </div>
 
         {/* Features */}
