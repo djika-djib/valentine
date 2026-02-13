@@ -2,10 +2,11 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
+import { supabase } from "../../../lib/supabase";
 
 export default function LovePage() {
   const params = useParams();
-  const id = params.id;
+  const id = params.id as string;
 
   const [data, setData] = useState<any>(null);
   const [inputPassword, setInputPassword] = useState("");
@@ -17,34 +18,22 @@ export default function LovePage() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // 🔹 Load Data
+  // 🔹 Fetch from Supabase
   useEffect(() => {
     if (!id) return;
-    const stored = localStorage.getItem(id as string);
-    if (stored) setData(JSON.parse(stored));
+
+    const fetchData = async () => {
+      const { data, error } = await supabase
+        .from("love_pages")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (!error && data) setData(data);
+    };
+
+    fetchData();
   }, [id]);
-
-  // 🔹 Stable Typing Animation (NO SKIP, NO UNDEFINED)
-  useEffect(() => {
-    if (!unlocked || !data?.story) return;
-
-    const fullText = data.story;
-    let currentIndex = 0;
-
-    setDisplayedText("");
-
-    const interval = setInterval(() => {
-      currentIndex++;
-
-      setDisplayedText(fullText.slice(0, currentIndex));
-
-      if (currentIndex >= fullText.length) {
-        clearInterval(interval);
-      }
-    }, 45);
-
-    return () => clearInterval(interval);
-  }, [unlocked, data]);
 
   // 🔹 Countdown
   useEffect(() => {
@@ -74,6 +63,27 @@ export default function LovePage() {
     return () => clearInterval(interval);
   }, []);
 
+  // 🔹 Typing Animation
+  useEffect(() => {
+    if (!unlocked || !data?.story) return;
+
+    const fullText = data.story;
+    let currentIndex = 0;
+
+    setDisplayedText("");
+
+    const interval = setInterval(() => {
+      currentIndex++;
+      setDisplayedText(fullText.slice(0, currentIndex));
+
+      if (currentIndex >= fullText.length) {
+        clearInterval(interval);
+      }
+    }, 45);
+
+    return () => clearInterval(interval);
+  }, [unlocked, data]);
+
   const toggleMusic = () => {
     if (!audioRef.current) return;
     isPlaying ? audioRef.current.pause() : audioRef.current.play();
@@ -82,21 +92,53 @@ export default function LovePage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-300">
-        Loading or Page Not Found 💔
+      <div className="min-h-screen flex items-center justify-center text-gray-300 bg-black">
+        Loading Love Page... 💘
       </div>
     );
   }
 
-  // 🔐 PASSWORD SCREEN
+  // 🔐 PASSWORD PAGE
   if (!unlocked) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-rose-900 to-black flex items-center justify-center px-4 text-pink-200">
         <div className="bg-black/40 backdrop-blur-md p-10 rounded-3xl shadow-xl w-full max-w-md text-center">
+
           <h2 className="text-3xl font-bold mb-4">
             🔐 Private Love Page
           </h2>
 
+          {/* ⏳ Countdown */}
+          {timeLeft && (
+            <div className="mb-6 bg-black/50 px-6 py-4 rounded-2xl">
+              <p className="text-sm mb-2 opacity-80">
+                💘 Valentine Begins In:
+              </p>
+              <div className="flex justify-center gap-4 text-lg font-bold">
+                <div>{timeLeft.days}d</div>
+                <div>{timeLeft.hours}h</div>
+                <div>{timeLeft.minutes}m</div>
+                <div>{timeLeft.seconds}s</div>
+              </div>
+            </div>
+          )}
+
+          {/* 💌 Share Button */}
+          <button
+            onClick={() => {
+              const url = window.location.href;
+              const text = `💖 I made something special for you...\n${url}`;
+              window.open(
+                `https://wa.me/?text=${encodeURIComponent(text)}`,
+                "_blank"
+              );
+            }}
+            className="mb-6 bg-green-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-600 transition"
+          >
+            💌 Share on WhatsApp
+          </button>
+
+          {/* 🔐 Password Input */}
           <input
             type="password"
             placeholder="Enter Password"
@@ -117,16 +159,17 @@ export default function LovePage() {
           >
             Unlock My Heart 💘
           </button>
+
         </div>
       </div>
     );
   }
 
-  // 💖 LOVE PAGE (DARK MODE)
+  // 💖 UNLOCKED LOVE PAGE
   return (
     <div className="relative min-h-screen flex items-center justify-center text-center px-6 overflow-hidden bg-gradient-to-br from-black via-rose-900 to-gray-900 text-pink-200 transition-all duration-700">
 
-      {/* 🌹 Falling Rose Petals */}
+      {/* 🌹 Falling Petals */}
       {Array.from({ length: 20 }).map((_, i) => (
         <div
           key={i}
@@ -141,36 +184,13 @@ export default function LovePage() {
         </div>
       ))}
 
-      {/* ❤️ Floating Hearts */}
-      <div className="heart left-10 text-3xl">❤️</div>
-      <div className="heart left-1/4 text-2xl" style={{ animationDelay: "1s" }}>💖</div>
-      <div className="heart left-1/2 text-4xl" style={{ animationDelay: "2s" }}>💕</div>
-      <div className="heart right-1/4 text-3xl" style={{ animationDelay: "3s" }}>💘</div>
-      <div className="heart right-10 text-2xl" style={{ animationDelay: "4s" }}>💝</div>
-
-      {/* 🎵 Background Music */}
+      {/* 🎵 Music */}
       <audio ref={audioRef} loop>
         <source src="/music.mp3" type="audio/mpeg" />
       </audio>
 
       <div className="max-w-2xl z-10 animate-fadeIn">
 
-        {/* ⏳ Countdown */}
-        {timeLeft && (
-          <div className="mb-6 bg-black/40 backdrop-blur-md px-6 py-4 rounded-2xl">
-            <p className="text-lg font-semibold mb-2">
-              💘 Valentine Begins In:
-            </p>
-            <div className="flex justify-center gap-6 text-xl font-bold">
-              <div>{timeLeft.days}d</div>
-              <div>{timeLeft.hours}h</div>
-              <div>{timeLeft.minutes}m</div>
-              <div>{timeLeft.seconds}s</div>
-            </div>
-          </div>
-        )}
-
-        {/* 🎵 Music Button */}
         <button
           onClick={toggleMusic}
           className="mb-6 bg-pink-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-pink-700 transition"
@@ -179,18 +199,19 @@ export default function LovePage() {
         </button>
 
         <h1 className="text-5xl font-bold mb-6">
-          {data.yourName} ❤️ {data.partnerName}
+          {data.your_name} ❤️ {data.partner_name}
         </h1>
 
-        {/* ⌨ Typing Text */}
         <p className="text-xl leading-relaxed whitespace-pre-line min-h-[120px]">
           {displayedText}
           <span className="animate-pulse">|</span>
         </p>
 
-        <p className="mt-12 text-m opacity-70">
-          Made with 💝 on HeartLink 2026 (DjikaTech)
+        {/* ✨ Signature */}
+        <p className="mt-16 text-m opacity-60 tracking-wide">
+          Made with 💘 by <span className="font-semibold text-pink-300">DjikaTech</span> © {new Date().getFullYear()}
         </p>
+
       </div>
     </div>
   );

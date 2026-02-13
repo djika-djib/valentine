@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function CreatePage() {
   const router = useRouter();
@@ -13,6 +14,8 @@ export default function CreatePage() {
     password: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -22,7 +25,7 @@ export default function CreatePage() {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (
       !formData.yourName ||
       !formData.partnerName ||
@@ -33,11 +36,31 @@ export default function CreatePage() {
       return;
     }
 
-    const id = crypto.randomUUID();
+    setLoading(true);
 
-    localStorage.setItem(id, JSON.stringify(formData));
+    const { data, error } = await supabase
+      .from("love_pages")
+      .insert([
+        {
+          your_name: formData.yourName,
+          partner_name: formData.partnerName,
+          story: formData.story,
+          password: formData.password,
+        },
+      ])
+      .select()
+      .single();
 
-    router.push(`/love/${id}`);
+    setLoading(false);
+
+    if (error) {
+      console.error(error);
+      alert("Something went wrong 😢");
+      return;
+    }
+
+    // Redirect to dynamic love page using real database ID
+    router.push(`/love/${data.id}`);
   };
 
   return (
@@ -53,9 +76,7 @@ export default function CreatePage() {
           name="yourName"
           placeholder="Your Name"
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg mb-4 
-          focus:ring-2 focus:ring-rose-400 focus:outline-none 
-          text-black placeholder-gray-400"
+          className="w-full p-3 border border-gray-300 rounded-lg mb-4 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-400"
         />
 
         {/* Partner Name */}
@@ -64,9 +85,7 @@ export default function CreatePage() {
           name="partnerName"
           placeholder="Partner's Name"
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg mb-4 
-          focus:ring-2 focus:ring-rose-400 focus:outline-none 
-          text-black placeholder-gray-400"
+          className="w-full p-3 border border-gray-300 rounded-lg mb-4 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-400"
         />
 
         {/* Love Story */}
@@ -75,9 +94,7 @@ export default function CreatePage() {
           placeholder="Write your love message..."
           rows={4}
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg mb-4 
-          focus:ring-2 focus:ring-rose-400 focus:outline-none 
-          text-black placeholder-gray-400"
+          className="w-full p-3 border border-gray-300 rounded-lg mb-4 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-400"
         />
 
         {/* Password */}
@@ -86,16 +103,15 @@ export default function CreatePage() {
           name="password"
           placeholder="Set a Password"
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg mb-6 
-          focus:ring-2 focus:ring-rose-400 focus:outline-none 
-          text-black placeholder-gray-400"
+          className="w-full p-3 border border-gray-300 rounded-lg mb-6 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-400"
         />
 
         <button
           onClick={handleSubmit}
-          className="w-full bg-rose-500 text-white py-3 rounded-full font-semibold hover:bg-rose-600 transition"
+          disabled={loading}
+          className="w-full bg-rose-500 text-white py-3 rounded-full font-semibold hover:bg-rose-600 transition disabled:opacity-50"
         >
-          Generate Love Link 💘
+          {loading ? "Creating..." : "Generate Love Link 💘"}
         </button>
       </div>
     </div>

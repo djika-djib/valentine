@@ -63,9 +63,11 @@ export default function Home() {
           </div>
         </div>
         <br />
-        <p className="text-gray-500">
-            Built with ❤️ by NexInit.merndev(DjikaTech)
-          </p>
+         {/* ✨ Signature */}
+        <p className="mt-16 text-m tracking-wide text-gray-600">
+          Made with 💘 by <span className="font-semibold text-darkred-300">DjikaTech</span> © {new Date().getFullYear()}
+        </p>
+
       </div>
     </div>
   );
